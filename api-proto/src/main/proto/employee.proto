@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package com.example.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.example.grpc";
+
+// Contrat interne : leave-service vérifie l'employé avant de créer une demande.
+service EmployeeGrpcService {
+  rpc GetEmployeeForLeave (EmployeeLookupRequest) returns (EmployeeForLeaveResponse);
+}
+
+message EmployeeLookupRequest {
+  string employee_id = 1; // sub Keycloak de l'employé
+}
+
+message EmployeeForLeaveResponse {
+  string employee_id = 1;
+  EmploymentStatus employment_status = 2;
+}
+
+enum EmploymentStatus {
+  EMPLOYMENT_STATUS_UNSPECIFIED = 0;
+  EMPLOYMENT_STATUS_ACTIVE = 1;
+  EMPLOYMENT_STATUS_ON_LEAVE = 2;
+  EMPLOYMENT_STATUS_SUSPENDED = 3;
+  EMPLOYMENT_STATUS_TERMINATED = 4;
+}

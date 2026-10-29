@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # =========================================================================
+  # 1. LES BASES DE DONNÉES MYSQL (Une base par port)
+  # =========================================================================
+
+  # Base actuellement utilisée par candidate-service (schéma historique employee_cv_db)
+  mysql-employee:
+    image: mysql:8.0
+    container_name: rh-mysql-employee
+    ports:
+      - "3305:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: employee_cv_db
+    volumes:
+      - mysql_employee_data:/var/lib/mysql
+
+  # Base dédiée au futur employee-service (Accessible depuis l'hôte sur localhost:3311)
+  mysql-employees:
+    image: mysql:8.0
+    container_name: rh-mysql-employees
+    ports:
+      - "3311:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: employees_db
+    volumes:
+      - mysql_employees_data:/var/lib/mysql
+
+  # Base pour recruitment-service (Accessible sur localhost:3307)
+  mysql-recruitment:
+    image: mysql:8.0
+    container_name: rh-mysql-recruitment
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: recruitment_db
+    volumes:
+      - mysql_recruitment_data:/var/lib/mysql
+
+  # Base pour leave-service (Accessible sur localhost:3308)
+  mysql-leave:
+    image: mysql:8.0
+    container_name: rh-mysql-leave
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: leave_db
+    volumes:
+      - mysql_leave_data:/var/lib/mysql
+
+  # Base pour candidature-service (Accessible sur localhost:3309)
+  mysql-candidature:
+    image: mysql:8.0
+    container_name: rh-mysql-candidature
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: candidature_db
+    volumes:
+      - mysql_candidature_data:/var/lib/mysql
+
+  # Base pour admin-service (Accessible sur localhost:33010)
+  mysql-admin:
+    image: mysql:8.0
+    container_name: rh-mysql-admin
+    ports:
+      - "3310:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: admin_db
+    volumes:
+      - mysql_admin_data:/var/lib/mysql
+
+  # =========================================================================
+  # 2. LE MESSAGE BROKER (Apache Kafka + Son Interface Visuelle)
+  # =========================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: rh-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: rh-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Configuration simplifiée pour que votre IDE (localhost) communique directement
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  # Interface web pour voir vos topics Kafka sur http://localhost:8000
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: rh-kafka-ui
+    ports:
+      - "8000:8080"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: localhost:9092
+
+  # =========================================================================
+  # 3. SÉCURITÉ (Keycloak sur http://localhost:8080)
+  # =========================================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: rh-keycloak
+    command: start-dev
+    ports:
+      - "8088:8080"
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?Define KEYCLOAK_ADMIN in .env}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Define KEYCLOAK_ADMIN_PASSWORD in .env}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+  tika-server:
+    image: apache/tika:3.2.2.0-full
+    container_name: rh-tika-server
+    ports:
+      - "127.0.0.1:9998:9998"
+    volumes:
+      - ${CV_UPLOADS_PATH:-./uploads/cvs}:/uploads/cvs
+    restart: unless-stopped
+# Persistance des données sur votre disque dur (Rien n'est perdu au redémarrage)
+volumes:
+  mysql_employee_data:
+  mysql_employees_data:
+  mysql_recruitment_data:
+  mysql_leave_data:
+  mysql_candidature_data:
+  mysql_admin_data:
+  kafka_data:
+  keycloak_data:

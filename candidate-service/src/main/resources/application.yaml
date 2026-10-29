@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: candidate-service
+  config:
+    import: optional:configserver:http://localhost:8888
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        model: ${OLLAMA_MODEL:llama3.2:3b}
+app:
+  tika-server-url: ${TIKA_SERVER_URL:http://localhost:9998}
+  tika:
+    connect-timeout: ${TIKA_CONNECT_TIMEOUT:5s}
+    read-timeout: ${TIKA_READ_TIMEOUT:2m}
+  ollama:
+    connect-timeout: ${OLLAMA_CONNECT_TIMEOUT:5s}
+    read-timeout: ${OLLAMA_READ_TIMEOUT:5m}
+
+

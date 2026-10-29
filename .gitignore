@@ -1,0 +1,29 @@
+# Configuration locale et secrets
+.env
+.env.*
+!.env.example
+
+# CV téléversés et données persistantes locales
+/uploads/
+/storage/
+/data/
+
+# Builds Java / Maven
+**/target/
+**/build/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
+/logs/
+
+# IDE et éditeurs
+.idea/
+*.iml
+.vscode/
+
+# Système
+.DS_Store
+Thumbs.db

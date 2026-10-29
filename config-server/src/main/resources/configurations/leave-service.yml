@@ -1,0 +1,21 @@
+server:
+  port: 8006
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8088/realms/micro}
+  datasource:
+    url: jdbc:mysql://localhost:3308/leave_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_ROOT_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  grpc:
+    client:
+      channel:
+        employee-service:
+          target: ${EMPLOYEE_GRPC_TARGET:static://localhost:9090}
