@@ -1,0 +1,16 @@
+server:
+  port: 8007
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8088/realms/micro}
+  datasource:
+    url: jdbc:mysql://localhost:3308/recruitment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_ROOT_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
