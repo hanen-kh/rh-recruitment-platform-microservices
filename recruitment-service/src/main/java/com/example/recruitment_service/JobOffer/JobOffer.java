@@ -79,7 +79,6 @@ public class JobOffer {
 
     private LocalDateTime publishedAt;
 
-    /** Keycloak subject of the employee who created the offer. */
     @Column(nullable = false, updatable = false, length = 100)
     private String createdById;
 
