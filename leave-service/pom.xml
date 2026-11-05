@@ -33,6 +33,8 @@
 		<spring-cloud.version>2025.1.4</spring-cloud.version>
 	</properties>
 	<dependencies>
+
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-grpc-client</artifactId>

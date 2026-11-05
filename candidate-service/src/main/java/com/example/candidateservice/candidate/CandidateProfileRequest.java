@@ -1,10 +1,14 @@
 package com.example.candidateservice.candidate;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public record CandidateProfileRequest(
-        String firstName,
-        String lastName,
-        String email,
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        @NotBlank @Email String email,
+        @NotBlank @Size(min = 8, max = 72) String password,
         String currentPosition,
-        Boolean lookingForJob
-) {
+        Boolean lookingForJob){
 }

@@ -9,13 +9,17 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3308/leave_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: rootpassword
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  main:
+    # Autorise un starter à écraser la définition de l'autre pour débloquer le démarrage
+    allow-bean-definition-overriding: true
   grpc:
     client:
       channel:
         employee-service:
-          target: ${EMPLOYEE_GRPC_TARGET:static://localhost:9090}
+          target: static://localhost:9090

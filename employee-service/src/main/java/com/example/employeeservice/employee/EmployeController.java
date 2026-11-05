@@ -2,6 +2,7 @@ package com.example.employeeservice.employee;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,9 +27,9 @@ public class EmployeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeResponse> create(@Valid @RequestBody EmployeCreateRequest request) {
-        EmployeResponse created = employeService.create(request);
-        return ResponseEntity.status(201).body(created);
+    public EmployeResponse create(@Valid @RequestBody EmployeCreateRequest request,
+                                  Authentication authentication) {
+        return employeService.create(request, authentication);
     }
 
     @GetMapping

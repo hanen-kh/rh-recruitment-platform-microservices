@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3311/employees_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: rootpassword
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,3 +17,10 @@ spring:
   grpc:
     server:
       port: 9090
+
+keycloak:
+  admin:
+    server-url: http://localhost:8088
+    realm: micro
+    client-id: hr-admin-client
+    client-secret: ${KEYCLOAK_ADMIN_SECRET}

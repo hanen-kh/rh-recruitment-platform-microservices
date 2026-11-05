@@ -1,5 +1,6 @@
 package com.example.candidateservice.candidate;
 
+import com.example.candidateservice.KeycloakUser.KeycloakUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,33 +28,50 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class CandidateProfileService {
  private final CandidateProfileRepository candidateProfileRepository;
  private  final Path cvStorageDirectory;
+ private final KeycloakUserService keycloakUserService;
     public CandidateProfileService(
             CandidateProfileRepository candidateProfileRepository,
-            @Value("${app.cv-storage-directory:uploads/cvs}") String cvStorageDirectory
+            @Value("${app.cv-storage-directory:uploads/cvs}") String cvStorageDirectory,
+            KeycloakUserService keycloakUserService
     ) {
         this.candidateProfileRepository = candidateProfileRepository;
         this.cvStorageDirectory = Paths.get(cvStorageDirectory).toAbsolutePath().normalize();
+        this.keycloakUserService = keycloakUserService;
     }
 
-@Transactional
-    public CandidateProfileResponse create(String id, CandidateProfileRequest request){
-        requireText(id, "L'identifiant du candidat est obligatoire.");
-        validateRequest(request);
-        if(candidateProfileRepository.findById(id).isPresent()){
-            throw new ResponseStatusException(CONFLICT, "Un profil candidat existe deja : " + id);
-        }
-        ensureEmailIsAvailable(request.email(),  null);
-        CandidateProfile candidateProfile = CandidateProfile.builder()
-                .id(id)
-                .firstName(request.firstName().trim())
-                .lastName(request.lastName().trim())
-                .email(request.email().trim())
-                .currentPosition(trimToNull(request.currentPosition()))
-                .isLookingForJob(Boolean.TRUE.equals(request.lookingForJob()))
-                .build();
+    private static final String CANDIDATE_ROLE = "CANDIDAT";
 
-        return toResponse(candidateProfileRepository.save(candidateProfile));
-}
+    @Transactional
+    public CandidateProfileResponse create(CandidateProfileRequest request) {
+        validateRequest(request);
+        String email = request.email().trim().toLowerCase();
+        ensureEmailIsAvailable(email, null);
+
+        // 1. Keycloak : l'id retourné devient l'id du profil (= claim "sub")
+        String keycloakId = keycloakUserService.createUser(
+                email,
+                request.firstName().trim(),
+                request.lastName().trim(),
+                CANDIDATE_ROLE,
+                request.password());
+
+        try {
+            CandidateProfile candidateProfile = CandidateProfile.builder()
+                    .id(keycloakId)
+                    .firstName(request.firstName().trim())
+                    .lastName(request.lastName().trim())
+                    .email(email)
+                    .currentPosition(trimToNull(request.currentPosition()))
+                    .isLookingForJob(Boolean.TRUE.equals(request.lookingForJob()))
+                    .build();
+
+            // saveAndFlush : l'INSERT part ici, donc l'erreur éventuelle est captée par le catch
+            return toResponse(candidateProfileRepository.saveAndFlush(candidateProfile));
+        } catch (RuntimeException ex) {
+            keycloakUserService.deleteUser(keycloakId);   // compensation
+            throw ex;
+        }
+    }
 
 
 @Transactional(readOnly = true)
