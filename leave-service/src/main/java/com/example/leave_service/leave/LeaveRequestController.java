@@ -32,7 +32,8 @@ public class LeaveRequestController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody LeaveRequestCreateRequest request
     ) {
-        LeaveRequestResponse created = leaveRequestService.create(jwt.getSubject(), request);
+        LeaveRequestResponse created = leaveRequestService.create(
+                jwt.getSubject(), jwt.getTokenValue(), request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(created.id())

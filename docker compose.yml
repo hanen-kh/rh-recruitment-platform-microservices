@@ -12,19 +12,19 @@ services:
     ports:
       - "3305:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: employee_cv_db
     volumes:
       - mysql_employee_data:/var/lib/mysql
 
-  # Base dédiée au futur employee-service (Accessible depuis l'hôte sur localhost:3311)
+  # Base dédiée au employee-service (Accessible depuis l'hôte sur localhost:3311)
   mysql-employees:
     image: mysql:8.0
     container_name: rh-mysql-employees
     ports:
       - "3311:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: employees_db
     volumes:
       - mysql_employees_data:/var/lib/mysql
@@ -36,7 +36,7 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: recruitment_db
     volumes:
       - mysql_recruitment_data:/var/lib/mysql
@@ -48,7 +48,7 @@ services:
     ports:
       - "3308:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: leave_db
     volumes:
       - mysql_leave_data:/var/lib/mysql
@@ -60,7 +60,7 @@ services:
     ports:
       - "3309:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: candidature_db
     volumes:
       - mysql_candidature_data:/var/lib/mysql
@@ -72,7 +72,7 @@ services:
     ports:
       - "3310:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: admin_db
     volumes:
       - mysql_admin_data:/var/lib/mysql
@@ -125,8 +125,8 @@ services:
     ports:
       - "8088:8080"
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?Define KEYCLOAK_ADMIN in .env}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Define KEYCLOAK_ADMIN_PASSWORD in .env}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: adminpassword
     volumes:
       - keycloak_data:/opt/keycloak/data
 

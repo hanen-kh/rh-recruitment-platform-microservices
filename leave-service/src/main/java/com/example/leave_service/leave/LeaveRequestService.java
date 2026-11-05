@@ -2,8 +2,11 @@ package com.example.leave_service.leave;
 
 import com.example.grpc.EmployeeGrpcServiceGrpc;
 import com.example.grpc.EmployeeLookupRequest;
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.ClientInterceptors;
+import io.grpc.stub.MetadataUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,8 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
+
+
 @Service
 @RequiredArgsConstructor
 public class LeaveRequestService {
@@ -31,9 +36,13 @@ public class LeaveRequestService {
     private final EmployeeGrpcServiceGrpc.EmployeeGrpcServiceBlockingStub employeeStub;
 
     @Transactional
-    public LeaveRequestResponse create(String employeeId, LeaveRequestCreateRequest request) {
+    public LeaveRequestResponse create(
+            String employeeId,
+            String accessToken,
+            LeaveRequestCreateRequest request
+    ) {
         requireText(employeeId, "L'identifiant Keycloak de l'employé est obligatoire.");
-        verifyEmployeeExists(employeeId);
+        verifyEmployeeExists(employeeId, accessToken);
         validateDateRange(request.startDate(), request.endDate());
 
         int requestedDays = countWeekdays(request.startDate(), request.endDate());
@@ -55,14 +64,27 @@ public class LeaveRequestService {
         return LeaveRequestResponse.fromEntity(leaveRequestRepository.save(leaveRequest));
     }
 
-    private void verifyEmployeeExists(String employeeId) {
+    private void verifyEmployeeExists(String employeeId, String accessToken) {
         try {
-            employeeStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+            Metadata headers = new Metadata();
+            Metadata.Key<String> authorizationKey = Metadata.Key.of(
+                    "Authorization", Metadata.ASCII_STRING_MARSHALLER);
+            headers.put(authorizationKey, "Bearer " + accessToken);
+
+            EmployeeGrpcServiceGrpc.EmployeeGrpcServiceBlockingStub authenticatedStub =
+                    EmployeeGrpcServiceGrpc.newBlockingStub(ClientInterceptors.intercept(
+                            employeeStub.getChannel(),
+                            MetadataUtils.newAttachHeadersInterceptor(headers)
+                    ));
+
+            authenticatedStub
+                    .withDeadlineAfter(3, TimeUnit.SECONDS)
                     .getEmployeeForLeave(EmployeeLookupRequest.newBuilder()
                             .setEmployeeId(employeeId)
                             .build());
         } catch (StatusRuntimeException exception) {
             Status.Code code = exception.getStatus().getCode();
+
             if (code == Status.Code.NOT_FOUND) {
                 throw new ResponseStatusException(NOT_FOUND,
                         "Aucun employé ne correspond à l'identifiant fourni.", exception);
@@ -71,10 +93,17 @@ public class LeaveRequestService {
                 throw new ResponseStatusException(SERVICE_UNAVAILABLE,
                         "Le service des employés est temporairement indisponible.", exception);
             }
+
+            // MODIFICATION : Extraction du vrai message d'erreur gRPC envoyé par le serveur
+            String realErrorMessage = exception.getStatus().getDescription() != null
+                    ? exception.getStatus().getDescription()
+                    : exception.getMessage();
+
             throw new ResponseStatusException(BAD_GATEWAY,
-                    "La vérification de l'employé a échoué.", exception);
+                    "Erreur gRPC réelle [" + code + "] : " + realErrorMessage, exception);
         }
     }
+
 
     @Transactional(readOnly = true)
     public List<LeaveRequestResponse> findMine(String employeeId) {

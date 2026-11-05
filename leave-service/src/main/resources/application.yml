@@ -3,3 +3,8 @@ spring:
     name: leave-service
   config:
     import: optional:configserver:http://localhost:8888
+  grpc:
+    client:
+      channel:
+        employee-service:
+          target: static://localhost:9090

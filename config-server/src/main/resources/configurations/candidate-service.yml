@@ -19,7 +19,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3305/employee_cv_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: rootpassword
   jpa:
     hibernate:
       ddl-auto: update
@@ -31,3 +31,9 @@ spring:
       chat:
         model: ${OLLAMA_MODEL:llama3.2:3b}
 
+keycloak:
+  admin:
+    server-url: http://localhost:8088
+    realm: micro
+    client-id: hr-admin-client
+    client-secret: ${KEYCLOAK_ADMIN_SECRET}
