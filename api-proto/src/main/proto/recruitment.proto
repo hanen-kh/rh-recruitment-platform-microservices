@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package recruitment;
+
+option java_multiple_files = true;
+option java_package = "com.example.recruitment.grpc";
+
+service RecruitmentService {
+  rpc GetOfferForApplication (OfferLookupRequest) returns (OfferApplicationInfo);
+}
+
+message OfferLookupRequest {
+  string offer_id = 1;
+}
+
+message OfferApplicationInfo {
+  string offer_id = 1;
+  bool open = 2;
+}

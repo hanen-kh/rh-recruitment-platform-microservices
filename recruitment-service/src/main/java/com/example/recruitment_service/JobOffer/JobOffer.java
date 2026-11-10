@@ -108,4 +108,11 @@ public class JobOffer {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public boolean isOpenForApplications(LocalDate today) {
+        boolean published = status == JobOfferStatus.PUBLISHED;
+        boolean beforeDeadline = applicationDeadline == null
+                || !today.isAfter(applicationDeadline);                      // date limite incluse
+        return published && beforeDeadline;
+    }
 }

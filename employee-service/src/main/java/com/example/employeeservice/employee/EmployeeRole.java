@@ -4,6 +4,5 @@ package com.example.employeeservice.employee;
 public enum EmployeeRole {
     HR_MANAGER,
     ADMIN,
-
     EMPLOYEE
 }

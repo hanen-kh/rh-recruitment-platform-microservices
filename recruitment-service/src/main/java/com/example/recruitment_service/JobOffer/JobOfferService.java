@@ -177,4 +177,6 @@ public class JobOfferService {
         String value = trimToNull(currency);
         return value == null ? null : value.toUpperCase();
     }
+
+
 }
